@@ -53,18 +53,20 @@ const App = (() => {
   };
 
   let currentPage = 'dashboard';
+  let _initialized = false;
 
   async function init() {
     DB.initClient();
 
     // Observa mudanças de autenticação
     DB.getClient().auth.onAuthStateChange(async (event, session) => {
-      if (session) {
+      if (session && !_initialized) {
+        _initialized = true;
         await _onLogin();
       } else if (event === 'SIGNED_OUT') {
+        _initialized = false;
         location.reload();
       }
-      // INITIAL_SESSION sem sessão = apenas mostra o overlay de login (já visível no HTML)
     });
   }
 
