@@ -45,7 +45,33 @@ html, body { height: 100%; font-family: 'Segoe UI', system-ui, sans-serif; backg
 .page-content { flex: 1; padding: 28px; }
 
 /* ---- Sidebar ---- */
-.sidebar-header { padding: 20px 18px 14px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.sidebar { transition: width .25s ease; overflow: hidden; }
+.sidebar-header { padding: 20px 18px 14px; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+/* Botão de recolher */
+.sidebar-toggle-btn { background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.35); padding: 5px 6px; border-radius: 6px; transition: all .15s; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.sidebar-toggle-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+.sidebar-toggle-btn svg { display: block; transition: transform .25s ease; }
+
+/* Estado recolhido (desktop) */
+.sidebar.collapsed { width: 64px; }
+.sidebar.collapsed .sidebar-header { justify-content: center; padding: 16px 8px; }
+.sidebar.collapsed .brand { display: none; }
+.sidebar.collapsed .sidebar-toggle-btn svg { transform: rotate(180deg); }
+.sidebar.collapsed .nav-section-label,
+.sidebar.collapsed .nav-link span,
+.sidebar.collapsed .user-meta,
+.sidebar.collapsed .sidebar-text { display: none; }
+.sidebar.collapsed .nav-link { justify-content: center; padding: 10px 0; }
+.sidebar.collapsed .sidebar-nav { padding: 10px 6px; }
+.sidebar.collapsed .sidebar-bottom { padding: 12px 6px; }
+.sidebar.collapsed .user-card { justify-content: center; padding: 8px 0; }
+.sidebar.collapsed .user-logout { justify-content: center; padding: 8px 0; }
+
+/* Backdrop mobile */
+.sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 499; }
+.sidebar-backdrop.visible { display: block; }
+.btn-menu { display: none; }
 .brand { display: flex; align-items: center; gap: 10px; }
 .brand-icon { font-size: 26px; }
 .brand-text { color: #fff; font-weight: 700; font-size: 17px; letter-spacing: 0.5px; }
@@ -273,12 +299,48 @@ tr:last-child td { border-bottom: none; }
   .fin-summary { grid-template-columns: repeat(2,1fr); }
   .form-grid-3 { grid-template-columns: 1fr 1fr; }
 }
-@media (max-width: 640px) {
-  .sidebar { width: 200px; }
+
+/* Sidebar mobile: gaveta sobreposta */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: calc(-1 * var(--sidebar-w));
+    top: 0; bottom: 0;
+    z-index: 500;
+    width: var(--sidebar-w) !important;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: left .28s ease;
+  }
+  /* Forçar sidebar aberta ao clicar no hambúrguer */
+  .sidebar.mobile-open { left: 0; }
+  /* No mobile, sempre mostrar conteúdo completo, mesmo se estava collapsed */
+  .sidebar.mobile-open .brand,
+  .sidebar.mobile-open .nav-section-label,
+  .sidebar.mobile-open .nav-link span,
+  .sidebar.mobile-open .user-meta,
+  .sidebar.mobile-open .sidebar-text { display: flex !important; }
+  .sidebar.mobile-open .nav-section-label,
+  .sidebar.mobile-open .nav-link span,
+  .sidebar.mobile-open .user-meta,
+  .sidebar.mobile-open .sidebar-text { display: block !important; }
+  .sidebar.mobile-open .nav-link { justify-content: flex-start !important; padding: 9px 12px !important; }
+  .sidebar.mobile-open .sidebar-header { justify-content: space-between !important; padding: 20px 18px 14px !important; }
+  .sidebar.mobile-open .sidebar-nav { padding: 10px 10px !important; }
+  .sidebar.mobile-open .sidebar-bottom { padding: 12px 10px !important; }
+  .sidebar.mobile-open .user-card { justify-content: flex-start !important; padding: 8px 10px !important; }
+  .sidebar.mobile-open .user-logout { justify-content: flex-start !important; padding: 6px 10px !important; }
+  .sidebar-toggle-btn { display: none; }
+  .btn-menu { display: flex; }
+  .topbar { padding: 0 16px; }
   .page-content { padding: 16px; }
+}
+
+@media (max-width: 640px) {
   .card-grid-2, .card-grid-3, .card-grid-4, .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
   .fin-summary { grid-template-columns: 1fr 1fr; }
   .check-grid { grid-template-columns: 1fr 1fr; }
+  .topbar-date { display: none; }
 }
 
 /* ---- Misc ---- */

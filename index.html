@@ -19,6 +19,9 @@
           <div class="brand-sub">Estética & Saúde</div>
         </div>
       </div>
+      <button class="sidebar-toggle-btn" onclick="App.toggleSidebar()" title="Recolher menu">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
     </div>
 
     <nav class="sidebar-nav">
@@ -85,7 +88,7 @@
       </div>
       <button class="user-logout" onclick="Auth.logout()" title="Sair">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
-        Sair
+        <span class="sidebar-text">Sair</span>
       </button>
     </div>
   </aside>
@@ -95,6 +98,9 @@
     <!-- Topbar -->
     <div class="topbar">
       <div class="topbar-left">
+        <button class="btn-icon btn-menu" onclick="App.openMobileSidebar()" title="Abrir menu">
+          <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
         <h1 id="topbarTitle">Dashboard</h1>
         <p id="topbarSub">Visão geral do negócio</p>
       </div>
@@ -161,6 +167,8 @@
 
 </div><!-- /app-layout -->
 
+<div id="sidebarBackdrop" class="sidebar-backdrop" onclick="App.closeMobileSidebar()"></div>
+
 <!-- Login overlay -->
 <div id="loginOverlay" class="login-overlay">
   <div class="login-card">
@@ -196,7 +204,7 @@
 <!-- Scripts com cache-busting automático -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-  const _v = '20260515b';
+  const _v = '20260515c';
   const _scripts = ['js/db.js','js/utils.js','js/modules/dashboard.js','js/modules/agenda.js',
     'js/modules/clientes.js','js/modules/anamnese.js','js/modules/servicos.js',
     'js/modules/financeiro.js','js/modules/estoque.js','js/modules/metas.js',
