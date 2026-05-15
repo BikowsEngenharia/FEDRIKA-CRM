@@ -21,19 +21,60 @@ const DB = (() => {
   }
   function getClient() { return _client; }
 
+  const LS_KEY = 'fedrika_cache';
+
+  function _saveLS() {
+    try { localStorage.setItem(LS_KEY, JSON.stringify(_cache)); } catch(e) {}
+  }
+
+  function hasLocalCache() {
+    return !!localStorage.getItem(LS_KEY);
+  }
+
+  function clearLocalCache() {
+    localStorage.removeItem(LS_KEY);
+  }
+
   /* ---------- Carrega tudo no cache ---------- */
   async function loadAll() {
-    const { data, error } = await _client.from('crm_data').select('*');
-    if (error) { console.error('loadAll error', error); return; }
-    data.forEach(row => { _cache[row.key] = row.data; });
+    const ls = localStorage.getItem(LS_KEY);
+    if (ls) {
+      // Cache local disponível: carrega instantaneamente
+      try { Object.assign(_cache, JSON.parse(ls)); } catch(e) {}
+      ENTITIES.forEach(e => { if (!_cache[e]) _cache[e] = []; });
+      if (!_cache['config']) _cache['config'] = _defaultConfig();
+      // Sincroniza com Supabase em background (sem bloquear)
+      _syncFromSupabase();
+      return;
+    }
+    // Primeira vez: aguarda Supabase com timeout de 12s
+    const fetchData = _client.from('crm_data').select('*');
+    const timeout   = new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 12000));
+    try {
+      const { data, error } = await Promise.race([fetchData, timeout]);
+      if (!error && data) {
+        data.forEach(row => { _cache[row.key] = row.data; });
+        _saveLS();
+      }
+    } catch(e) { console.error('loadAll error', e); }
     ENTITIES.forEach(e => { if (!_cache[e]) _cache[e] = []; });
     if (!_cache['config']) _cache['config'] = _defaultConfig();
+  }
+
+  async function _syncFromSupabase() {
+    try {
+      const { data, error } = await _client.from('crm_data').select('*');
+      if (error || !data) return;
+      data.forEach(row => { _cache[row.key] = row.data; });
+      _saveLS();
+    } catch(e) {}
   }
 
   /* ---------- Sincroniza chave no Supabase ---------- */
   async function _sync(key) {
     const { error } = await _client.from('crm_data').upsert({ key, data: _cache[key] }, { onConflict: 'key' });
     if (error) console.error('sync error', key, error);
+    else _saveLS();
   }
 
   /* ---------- CRUD síncrono (opera no cache) ---------- */
@@ -176,7 +217,7 @@ const DB = (() => {
   }
 
   return {
-    initClient, getClient, loadAll, initSampleData,
+    initClient, getClient, loadAll, initSampleData, hasLocalCache, clearLocalCache,
     getAll, get, create, update, remove,
     getConfig, saveConfig,
   };

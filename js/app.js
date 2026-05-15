@@ -30,6 +30,7 @@ const Auth = (() => {
   }
 
   async function logout() {
+    DB.clearLocalCache();
     await DB.getClient().auth.signOut();
   }
 
@@ -72,11 +73,16 @@ const App = (() => {
 
   async function _onLogin() {
     const overlay = document.getElementById('loginOverlay');
-    overlay.classList.remove('hidden');
-    overlay.querySelector('.login-card').innerHTML = `
-      <div class="login-brand"><div style="font-size:52px">🌸</div><h1>Fedrika</h1></div>
-      <div class="login-loading"><div class="login-spinner"></div>Carregando dados...</div>
-    `;
+    const temCache = DB.hasLocalCache();
+
+    if (!temCache) {
+      // Primeira vez: mostra spinner enquanto carrega do Supabase
+      overlay.classList.remove('hidden');
+      overlay.querySelector('.login-card').innerHTML = `
+        <div class="login-brand"><div style="font-size:52px">🌸</div><h1>Fedrika</h1></div>
+        <div class="login-loading"><div class="login-spinner"></div>Carregando dados...</div>
+      `;
+    }
 
     try {
       await DB.loadAll();
