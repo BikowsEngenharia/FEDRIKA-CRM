@@ -23,7 +23,7 @@ const DB = (() => {
 
   /* ---------- Carrega tudo no cache ---------- */
   async function loadAll() {
-    const { data, error } = await _client.from('storage').select('*');
+    const { data, error } = await _client.from('crm_data').select('*');
     if (error) { console.error('loadAll error', error); return; }
     data.forEach(row => { _cache[row.key] = row.data; });
     ENTITIES.forEach(e => { if (!_cache[e]) _cache[e] = []; });
@@ -32,7 +32,7 @@ const DB = (() => {
 
   /* ---------- Sincroniza chave no Supabase ---------- */
   async function _sync(key) {
-    const { error } = await _client.from('storage').upsert({ key, data: _cache[key] }, { onConflict: 'key' });
+    const { error } = await _client.from('crm_data').upsert({ key, data: _cache[key] }, { onConflict: 'key' });
     if (error) console.error('sync error', key, error);
   }
 

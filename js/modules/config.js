@@ -129,7 +129,7 @@ const Config = (() => {
   async function resetarDados() {
     if(!confirm('ATENÇÃO: Isto apagará TODOS os dados e recarregará os exemplos. Confirmar?')) return;
     const client = DB.getClient();
-    await client.from('storage').delete().neq('key','__none__');
+    await client.from('crm_data').delete().neq('key','__none__');
     location.reload();
   }
 
