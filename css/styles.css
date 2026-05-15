@@ -2,33 +2,44 @@
    CRM Fedrika — Estética, Saúde & Beleza
    ============================================= */
 :root {
-  --primary: #c06db8;
-  --primary-dark: #9b4f96;
-  --primary-light: #e8b4e3;
-  --primary-bg: #fdf5fc;
-  --accent: #e8829a;
-  --accent-light: #fde8ee;
-  --teal: #4db8b0;
-  --teal-light: #e0f5f4;
-  --gold: #d4a017;
-  --gold-light: #fdf3d7;
-  --green: #4caf7d;
-  --green-light: #e8f7ef;
-  --red: #e05c6e;
+  /* ── Dourado principal (marca Fedrika) ── */
+  --primary: #C9A020;
+  --primary-dark: #7a5800;
+  --primary-light: #e8c84c;
+  --primary-bg: #fdf8e8;
+
+  /* ── Cobre/terracota (acento feminino) ── */
+  --accent: #c87050;
+  --accent-light: #faeee8;
+
+  /* ── Cores semânticas ── */
+  --teal: #3da89e;
+  --teal-light: #e0f5f3;
+  --gold: #C9A020;
+  --gold-light: #fdf8e8;
+  --green: #3da86a;
+  --green-light: #e6f7ee;
+  --red: #d95464;
   --red-light: #fdeaec;
-  --blue: #5b8bd8;
-  --blue-light: #eaf0fb;
-  --sidebar-bg: #1a0a1e;
-  --sidebar-hover: #2d1135;
-  --sidebar-active: #3d1a4d;
-  --text: #2d1b33;
-  --text-muted: #7a6b80;
-  --text-light: #b0a0b8;
-  --border: #e8dced;
-  --bg: #f9f4fb;
+  --blue: #4a7fcc;
+  --blue-light: #e8f0fb;
+
+  /* ── Sidebar escura elegante ── */
+  --sidebar-bg: #16141e;
+  --sidebar-hover: #26222e;
+  --sidebar-active: rgba(201,160,32,0.14);
+
+  /* ── Tipografia quente ── */
+  --text: #1e1a16;
+  --text-muted: #7a6e60;
+  --text-light: #b0a898;
+
+  /* ── Superfícies & Layout ── */
+  --border: #ece6da;
+  --bg: #f8f5f0;
   --surface: #ffffff;
-  --shadow: 0 2px 12px rgba(192,109,184,0.10);
-  --shadow-md: 0 4px 24px rgba(192,109,184,0.15);
+  --shadow: 0 2px 12px rgba(201,160,32,0.08);
+  --shadow-md: 0 4px 24px rgba(201,160,32,0.14);
   --radius: 12px;
   --radius-sm: 8px;
   --sidebar-w: 240px;
@@ -81,7 +92,7 @@ html, body { height: 100%; font-family: 'Segoe UI', system-ui, sans-serif; backg
 .nav-link { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius-sm); color: rgba(255,255,255,0.65); text-decoration: none; font-size: 13px; font-weight: 500; transition: all .18s; cursor: pointer; }
 .nav-link svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; flex-shrink: 0; }
 .nav-link:hover { background: var(--sidebar-hover); color: rgba(255,255,255,0.95); }
-.nav-link.active { background: var(--primary); color: #fff; }
+.nav-link.active { background: var(--sidebar-active); color: var(--primary); box-shadow: inset 3px 0 0 var(--primary); }
 
 .sidebar-bottom { padding: 12px 10px; border-top: 1px solid rgba(255,255,255,0.07); }
 .user-card { display: flex; align-items: center; gap: 10px; padding: 8px 10px; margin-top: 6px; }
@@ -100,8 +111,8 @@ html, body { height: 100%; font-family: 'Segoe UI', system-ui, sans-serif; backg
 
 /* ---- Buttons ---- */
 .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; border: none; cursor: pointer; transition: all .15s; text-decoration: none; }
-.btn-primary { background: var(--primary); color: #fff; }
-.btn-primary:hover { background: var(--primary-dark); }
+.btn-primary { background: var(--primary); color: #1a1200; font-weight: 700; }
+.btn-primary:hover { background: var(--primary-dark); color: #fff; }
 .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
 .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
 .btn-ghost { background: transparent; color: var(--text-muted); }
@@ -122,8 +133,8 @@ html, body { height: 100%; font-family: 'Segoe UI', system-ui, sans-serif; backg
 /* ---- KPI Cards ---- */
 .kpi-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 18px 20px; display: flex; align-items: flex-start; gap: 14px; }
 .kpi-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 20px; }
-.kpi-icon.purple { background: #f5e6f4; }
-.kpi-icon.pink { background: #fde8ee; }
+.kpi-icon.purple { background: #fdf0c8; }
+.kpi-icon.pink { background: #faeee8; }
 .kpi-icon.teal { background: var(--teal-light); }
 .kpi-icon.gold { background: var(--gold-light); }
 .kpi-icon.green { background: var(--green-light); }
@@ -146,8 +157,8 @@ tr:last-child td { border-bottom: none; }
 
 /* ---- Badges / Tags ---- */
 .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-.badge-purple { background: #f0e0ef; color: var(--primary-dark); }
-.badge-pink { background: var(--accent-light); color: #b0405a; }
+.badge-purple { background: #fdf0c8; color: #7a5800; }
+.badge-pink { background: #faeee8; color: #904030; }
 .badge-teal { background: var(--teal-light); color: #2a9089; }
 .badge-gold { background: var(--gold-light); color: #9a7000; }
 .badge-green { background: var(--green-light); color: #2e7d52; }
@@ -166,7 +177,7 @@ tr:last-child td { border-bottom: none; }
   font-size: 13px; color: var(--text); background: var(--surface); outline: none; transition: border .15s;
   font-family: inherit;
 }
-.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(192,109,184,0.1); }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(201,160,32,0.12); }
 .form-group textarea { resize: vertical; min-height: 80px; }
 
 /* ---- Modal ---- */
@@ -252,7 +263,7 @@ tr:last-child td { border-bottom: none; }
 .toast { background: var(--text); color: #fff; padding: 12px 18px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; box-shadow: var(--shadow-md); animation: slideIn .2s ease; display: flex; align-items: center; gap: 8px; min-width: 220px; }
 .toast.success { background: var(--green); }
 .toast.error { background: var(--red); }
-.toast.info { background: var(--primary); }
+.toast.info { background: #5b8bd8; }
 @keyframes slideIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
 /* ---- Dividers / Sections ---- */
@@ -266,7 +277,7 @@ tr:last-child td { border-bottom: none; }
 .timeline-item { display: flex; gap: 12px; padding-bottom: 16px; position: relative; }
 .timeline-item:not(:last-child)::before { content: ''; position: absolute; left: 15px; top: 28px; bottom: 0; width: 1px; background: var(--border); }
 .timeline-dot { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px; }
-.timeline-dot.purple { background: #f0e0ef; color: var(--primary); }
+.timeline-dot.purple { background: #fdf0c8; color: var(--primary); }
 .timeline-dot.green { background: var(--green-light); color: var(--green); }
 .timeline-dot.blue { background: var(--blue-light); color: var(--blue); }
 .timeline-dot.gold { background: var(--gold-light); color: var(--gold); }
