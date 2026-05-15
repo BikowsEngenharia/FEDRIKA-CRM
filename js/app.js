@@ -71,20 +71,21 @@ const App = (() => {
   }
 
   async function _onLogin() {
-    // Mostra spinner enquanto carrega dados
-    document.getElementById('loginOverlay').classList.remove('hidden');
-    document.getElementById('loginForm').classList.add('hidden');
-    document.getElementById('signupForm').classList.add('hidden');
-    document.getElementById('loginError').textContent = '';
-    document.getElementById('loginOverlay').querySelector('.login-card').innerHTML = `
+    const overlay = document.getElementById('loginOverlay');
+    overlay.classList.remove('hidden');
+    overlay.querySelector('.login-card').innerHTML = `
       <div class="login-brand"><div style="font-size:52px">🌸</div><h1>Fedrika</h1></div>
       <div class="login-loading"><div class="login-spinner"></div>Carregando dados...</div>
     `;
 
-    await DB.loadAll();
-    await DB.initSampleData();
-
-    document.getElementById('loginOverlay').classList.add('hidden');
+    try {
+      await DB.loadAll();
+      await DB.initSampleData();
+    } catch(e) {
+      console.error('Erro ao carregar dados:', e);
+    } finally {
+      overlay.classList.add('hidden');
+    }
 
     updateBrand();
     updateUser();
