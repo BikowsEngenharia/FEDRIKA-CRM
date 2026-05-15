@@ -158,6 +158,7 @@ const App = (() => {
   }
 
   function openMobileSidebar() {
+    if (window.innerWidth > 768) return;
     document.querySelector('.sidebar').classList.add('mobile-open');
     document.getElementById('sidebarBackdrop').classList.add('visible');
     document.body.style.overflow = 'hidden';

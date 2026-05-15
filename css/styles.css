@@ -82,7 +82,7 @@ html, body { height: 100%; font-family: 'Segoe UI', system-ui, sans-serif; backg
 /* Backdrop mobile */
 .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 499; }
 .sidebar-backdrop.visible { display: block; }
-.btn-menu { display: none; }
+.btn-menu { display: none !important; }
 .brand { display: flex; align-items: center; }
 .sidebar-logo { max-height: 46px; width: auto; max-width: 160px; object-fit: contain;
   filter: brightness(0) invert(1); /* branca no fundo escuro */ }
@@ -341,7 +341,7 @@ tr:last-child td { border-bottom: none; }
   .sidebar.mobile-open .user-card { justify-content: flex-start !important; padding: 8px 10px !important; }
   .sidebar.mobile-open .user-logout { justify-content: flex-start !important; padding: 6px 10px !important; }
   .sidebar-toggle-btn { display: none; }
-  .btn-menu { display: flex; }
+  .btn-menu { display: flex !important; }
   .topbar { padding: 0 16px; }
   .page-content { padding: 16px; }
 }
