@@ -13,11 +13,7 @@
   <aside class="sidebar">
     <div class="sidebar-header">
       <div class="brand">
-        <div class="brand-icon">🌸</div>
-        <div>
-          <div class="brand-text" id="brandName">Fedrika</div>
-          <div class="brand-sub">Estética & Saúde</div>
-        </div>
+        <img src="img/logo.png" alt="Fedrika" class="sidebar-logo">
       </div>
       <button class="sidebar-toggle-btn" onclick="App.toggleSidebar()" title="Recolher menu">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
@@ -173,9 +169,7 @@
 <div id="loginOverlay" class="login-overlay">
   <div class="login-card">
     <div class="login-brand">
-      <div style="font-size:52px">🌸</div>
-      <h1>Fedrika</h1>
-      <p>Estética & Saúde</p>
+      <img src="img/logo.png" alt="Fedrika" class="login-logo">
     </div>
     <div id="loginForm">
       <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')Auth.login()"></div>
@@ -204,7 +198,7 @@
 <!-- Scripts com cache-busting automático -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-  const _v = '20260515c';
+  const _v = '20260515d';
   const _scripts = ['js/db.js','js/utils.js','js/modules/dashboard.js','js/modules/agenda.js',
     'js/modules/clientes.js','js/modules/anamnese.js','js/modules/servicos.js',
     'js/modules/financeiro.js','js/modules/estoque.js','js/modules/metas.js',

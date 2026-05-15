@@ -79,7 +79,7 @@ const App = (() => {
       // Primeira vez: mostra spinner enquanto carrega do Supabase
       overlay.classList.remove('hidden');
       overlay.querySelector('.login-card').innerHTML = `
-        <div class="login-brand"><div style="font-size:52px">🌸</div><h1>Fedrika</h1></div>
+        <div class="login-brand"><img src="img/logo.png" alt="Fedrika" class="login-logo"></div>
         <div class="login-loading"><div class="login-spinner"></div>Carregando dados...</div>
       `;
     }
@@ -177,8 +177,7 @@ const App = (() => {
 
   function updateBrand() {
     const cfg = DB.getConfig();
-    document.getElementById('brandName').textContent = 'Fedrika';
-    document.title = cfg.empresa || 'CRM Fedrika';
+    document.title = cfg.empresa || 'CRM Fedrika — Saúde, Beleza & Estética';
   }
 
   function updateUser() {
