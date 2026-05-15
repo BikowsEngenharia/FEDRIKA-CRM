@@ -202,7 +202,7 @@
     'js/modules/financeiro.js','js/modules/estoque.js','js/modules/metas.js',
     'js/modules/atividades.js','js/modules/relatorios.js','js/modules/config.js','js/app.js'];
   (function loadNext(i) {
-    if(i >= _scripts.length) return;
+    if(i >= _scripts.length) { App.init(); return; }
     const s = document.createElement('script');
     s.src = _scripts[i] + '?v=' + _v;
     s.onload = () => loadNext(i + 1);
