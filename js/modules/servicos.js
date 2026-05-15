@@ -5,6 +5,7 @@ const Servicos = (() => {
   let activeTab = 'servicos';
   let editId = null;
   let editFuncId = null;
+  let _materiais = []; // materiais do serviço em edição
 
   function render() {
     document.getElementById('servicosContent').innerHTML = `
@@ -28,7 +29,7 @@ const Servicos = (() => {
 
   function renderServicos() {
     const servicos = DB.getAll('servicos').sort((a,b)=>a.nome.localeCompare(b.nome));
-    const cats = [...new Set(servicos.map(s=>s.categoria))];
+    const produtos = DB.getAll('produtos').filter(p=>p.ativo);
     document.getElementById('servicosTabContent').innerHTML = `
       <div class="toolbar">
         <button class="btn btn-primary" onclick="Servicos.openNewServico()">+ Novo Serviço</button>
@@ -37,20 +38,30 @@ const Servicos = (() => {
         <div class="card-title">Catálogo de Serviços <span class="badge badge-purple">${servicos.filter(s=>s.ativo).length} ativos</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Nome</th><th>Categoria</th><th>Duração</th><th>Preço</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Nome</th><th>Categoria</th><th>Duração</th><th>Preço</th><th>Materiais</th><th>Status</th><th></th></tr></thead>
             <tbody>
-              ${servicos.length===0?`<tr><td colspan="6"><div class="empty-state"><p>Nenhum serviço cadastrado</p></div></td></tr>`:
-              servicos.map(s=>`<tr>
-                <td><div style="font-weight:600">${Utils.escapeHtml(s.nome)}</div><div style="font-size:11px;color:var(--text-muted)">${s.descricao||''}</div></td>
-                <td><span class="badge badge-purple">${s.categoria||'—'}</span></td>
-                <td>${s.duracao||60} min</td>
-                <td style="font-weight:700">${Utils.fmtBRL(s.preco||0)}</td>
-                <td><span class="badge ${s.ativo?'badge-green':'badge-gray'}">${s.ativo?'Ativo':'Inativo'}</span></td>
-                <td><div style="display:flex;gap:4px">
-                  <button class="btn btn-ghost btn-sm" onclick="Servicos.openEditServico('${s.id}')">✎</button>
-                  <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="Servicos.deleteServico('${s.id}')">✕</button>
-                </div></td>
-              </tr>`).join('')}
+              ${servicos.length===0?`<tr><td colspan="7"><div class="empty-state"><p>Nenhum serviço cadastrado</p></div></td></tr>`:
+              servicos.map(s=>{
+                const mats = s.materiais||[];
+                return `<tr>
+                  <td><div style="font-weight:600">${Utils.escapeHtml(s.nome)}</div><div style="font-size:11px;color:var(--text-muted)">${s.descricao||''}</div></td>
+                  <td><span class="badge badge-purple">${s.categoria||'—'}</span></td>
+                  <td>${s.duracao||60} min</td>
+                  <td style="font-weight:700">${Utils.fmtBRL(s.preco||0)}</td>
+                  <td style="font-size:12px">
+                    ${mats.length===0?'<span style="color:var(--text-muted)">—</span>':
+                    mats.map(m=>{
+                      const p=DB.get('produtos',m.produtoId);
+                      return p?`<div>${p.nome} <strong>(${m.quantidade}${p.unidade||''})</strong></div>`:'';
+                    }).join('')}
+                  </td>
+                  <td><span class="badge ${s.ativo?'badge-green':'badge-gray'}">${s.ativo?'Ativo':'Inativo'}</span></td>
+                  <td><div style="display:flex;gap:4px">
+                    <button class="btn btn-ghost btn-sm" onclick="Servicos.openEditServico('${s.id}')">✎</button>
+                    <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="Servicos.deleteServico('${s.id}')">✕</button>
+                  </div></td>
+                </tr>`;
+              }).join('')}
             </tbody>
           </table>
         </div>
@@ -96,8 +107,9 @@ const Servicos = (() => {
 
   function renderServModal() {
     const cats=['Rosto','Corpo','Unhas','Cabelo','Depilação','Massagem','Estética Avançada','Saúde','Outro'];
+    const produtos = DB.getAll('produtos').filter(p=>p.ativo).sort((a,b)=>a.nome.localeCompare(b.nome));
     return `<div id="modalServico" class="modal-overlay hidden">
-      <div class="modal">
+      <div class="modal" style="max-width:600px">
         <div class="modal-header"><h3 id="servTitle">Novo Serviço</h3><button class="modal-close" onclick="Servicos.closeServModal()">×</button></div>
         <div class="modal-body">
           <div class="form-grid form-grid-2">
@@ -109,6 +121,22 @@ const Servicos = (() => {
             <div class="form-group"><label>Preço (R$)</label><input type="number" id="sPreco" step="0.01" min="0" value="0"></div>
             <div class="form-group"><label>Status</label><select id="sAtivo"><option value="1">Ativo</option><option value="0">Inativo</option></select></div>
             <div class="form-group" style="grid-column:span 2"><label>Descrição</label><textarea id="sDesc" rows="2" placeholder="Descrição do serviço"></textarea></div>
+
+            <!-- Materiais utilizados -->
+            <div class="form-group" style="grid-column:span 2">
+              <label>Materiais Consumidos por Atendimento</label>
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">Ao concluir um atendimento, esses produtos são descontados automaticamente do estoque.</div>
+              <div id="materiaisLista" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
+              ${produtos.length===0?`<div style="font-size:12px;color:var(--text-muted)">Cadastre produtos no módulo Estoque para vincular aqui.</div>`:
+              `<div style="display:flex;gap:8px;align-items:center">
+                <select id="matProduto" style="flex:1;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px">
+                  <option value="">Selecione um produto...</option>
+                  ${produtos.map(p=>`<option value="${p.id}">${p.nome} (estoque: ${p.estoqueAtual} ${p.unidade||''})</option>`).join('')}
+                </select>
+                <input type="number" id="matQtd" value="1" min="0.01" step="0.01" style="width:70px;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px" placeholder="Qtd">
+                <button type="button" class="btn btn-outline btn-sm" onclick="Servicos.addMaterial()">+ Adicionar</button>
+              </div>`}
+            </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -148,19 +176,83 @@ const Servicos = (() => {
     </div>`;
   }
 
-  function openNewServico() { editId=null; document.getElementById('servTitle').textContent='Novo Serviço'; ['sNome','sDesc'].forEach(id=>document.getElementById(id).value=''); document.getElementById('sDuracao').value=60; document.getElementById('sPreco').value=0; document.getElementById('sAtivo').value='1'; document.getElementById('modalServico').classList.remove('hidden'); }
-  function openEditServico(id) { editId=id; const s=DB.get('servicos',id); if(!s)return; document.getElementById('servTitle').textContent='Editar Serviço'; document.getElementById('sNome').value=s.nome||''; document.getElementById('sCategoria').value=s.categoria||'Rosto'; document.getElementById('sDuracao').value=s.duracao||60; document.getElementById('sPreco').value=s.preco||0; document.getElementById('sAtivo').value=s.ativo?'1':'0'; document.getElementById('sDesc').value=s.descricao||''; document.getElementById('modalServico').classList.remove('hidden'); }
-  function openNewFunc() { editFuncId=null; document.getElementById('funcTitle').textContent='Novo Profissional'; ['fNome','fCargo','fTelefone','fEmail'].forEach(id=>document.getElementById(id).value=''); document.getElementById('fComissao').value=30; document.getElementById('fCor').value='#c06db8'; document.getElementById('fAtivo').value='1'; Array.from(document.getElementById('fEspecialidades').options).forEach(o=>o.selected=false); document.getElementById('modalFunc').classList.remove('hidden'); }
-  function openEditFunc(id) { editFuncId=id; const f=DB.get('funcionarios',id); if(!f)return; document.getElementById('funcTitle').textContent='Editar Profissional'; document.getElementById('fNome').value=f.nome||''; document.getElementById('fCargo').value=f.cargo||''; document.getElementById('fComissao').value=f.comissao||30; document.getElementById('fTelefone').value=f.telefone||''; document.getElementById('fEmail').value=f.email||''; document.getElementById('fCor').value=f.cor||'#c06db8'; document.getElementById('fAtivo').value=f.ativo?'1':'0'; Array.from(document.getElementById('fEspecialidades').options).forEach(o=>o.selected=(f.especialidades||[]).includes(o.value)); document.getElementById('modalFunc').classList.remove('hidden'); }
+  function _renderMateriaisLista() {
+    const produtos = DB.getAll('produtos');
+    const el = document.getElementById('materiaisLista');
+    if(!el) return;
+    if(_materiais.length===0){ el.innerHTML='<div style="font-size:12px;color:var(--text-muted);padding:4px 0">Nenhum material adicionado.</div>'; return; }
+    el.innerHTML = _materiais.map((m,i)=>{
+      const p = DB.get('produtos', m.produtoId);
+      return `<div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);padding:8px 10px;border-radius:8px;font-size:13px">
+        <span><strong>${p?.nome||'Produto removido'}</strong> — ${m.quantidade} ${p?.unidade||''}</span>
+        <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="Servicos.removeMaterial(${i})">✕</button>
+      </div>`;
+    }).join('');
+  }
+
+  function addMaterial() {
+    const produtoId = document.getElementById('matProduto')?.value;
+    const quantidade = Number(document.getElementById('matQtd')?.value)||1;
+    if(!produtoId){ Utils.showToast('Selecione um produto','error'); return; }
+    if(_materiais.find(m=>m.produtoId===produtoId)){ Utils.showToast('Produto já adicionado','error'); return; }
+    _materiais.push({produtoId, quantidade});
+    _renderMateriaisLista();
+  }
+
+  function removeMaterial(idx) {
+    _materiais.splice(idx,1);
+    _renderMateriaisLista();
+  }
+
+  function openNewServico() {
+    editId=null;
+    _materiais=[];
+    document.getElementById('servTitle').textContent='Novo Serviço';
+    ['sNome','sDesc'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('sDuracao').value=60;
+    document.getElementById('sPreco').value=0;
+    document.getElementById('sAtivo').value='1';
+    document.getElementById('modalServico').classList.remove('hidden');
+    _renderMateriaisLista();
+  }
+
+  function openEditServico(id) {
+    editId=id;
+    const s=DB.get('servicos',id); if(!s)return;
+    _materiais = JSON.parse(JSON.stringify(s.materiais||[]));
+    document.getElementById('servTitle').textContent='Editar Serviço';
+    document.getElementById('sNome').value=s.nome||'';
+    document.getElementById('sCategoria').value=s.categoria||'Rosto';
+    document.getElementById('sDuracao').value=s.duracao||60;
+    document.getElementById('sPreco').value=s.preco||0;
+    document.getElementById('sAtivo').value=s.ativo?'1':'0';
+    document.getElementById('sDesc').value=s.descricao||'';
+    document.getElementById('modalServico').classList.remove('hidden');
+    _renderMateriaisLista();
+  }
+
   function closeServModal() { document.getElementById('modalServico').classList.add('hidden'); }
-  function closeFuncModal() { document.getElementById('modalFunc').classList.add('hidden'); }
 
   function saveServico() {
-    const nome=document.getElementById('sNome').value.trim(); if(!nome){Utils.showToast('Informe o nome','error');return;}
-    const data={nome,categoria:document.getElementById('sCategoria').value,duracao:Number(document.getElementById('sDuracao').value)||60,preco:Number(document.getElementById('sPreco').value)||0,descricao:document.getElementById('sDesc').value,ativo:document.getElementById('sAtivo').value==='1'};
-    if(editId)DB.update('servicos',editId,data); else DB.create('servicos',data);
-    closeServModal(); render(); Utils.showToast(editId?'Serviço atualizado!':'Serviço cadastrado!');
+    const nome=document.getElementById('sNome').value.trim();
+    if(!nome){ Utils.showToast('Informe o nome','error'); return; }
+    const data={
+      nome,
+      categoria: document.getElementById('sCategoria').value,
+      duracao: Number(document.getElementById('sDuracao').value)||60,
+      preco: Number(document.getElementById('sPreco').value)||0,
+      descricao: document.getElementById('sDesc').value,
+      ativo: document.getElementById('sAtivo').value==='1',
+      materiais: _materiais,
+    };
+    if(editId) DB.update('servicos',editId,data); else DB.create('servicos',data);
+    closeServModal(); render();
+    Utils.showToast(editId?'Serviço atualizado!':'Serviço cadastrado!');
   }
+
+  function openNewFunc() { editFuncId=null; document.getElementById('funcTitle').textContent='Novo Profissional'; ['fNome','fCargo','fTelefone','fEmail'].forEach(id=>document.getElementById(id).value=''); document.getElementById('fComissao').value=30; document.getElementById('fCor').value='#c06db8'; document.getElementById('fAtivo').value='1'; Array.from(document.getElementById('fEspecialidades').options).forEach(o=>o.selected=false); document.getElementById('modalFunc').classList.remove('hidden'); }
+  function openEditFunc(id) { editFuncId=id; const f=DB.get('funcionarios',id); if(!f)return; document.getElementById('funcTitle').textContent='Editar Profissional'; document.getElementById('fNome').value=f.nome||''; document.getElementById('fCargo').value=f.cargo||''; document.getElementById('fComissao').value=f.comissao||30; document.getElementById('fTelefone').value=f.telefone||''; document.getElementById('fEmail').value=f.email||''; document.getElementById('fCor').value=f.cor||'#c06db8'; document.getElementById('fAtivo').value=f.ativo?'1':'0'; Array.from(document.getElementById('fEspecialidades').options).forEach(o=>o.selected=(f.especialidades||[]).includes(o.value)); document.getElementById('modalFunc').classList.remove('hidden'); }
+  function closeFuncModal() { document.getElementById('modalFunc').classList.add('hidden'); }
 
   function saveFunc() {
     const nome=document.getElementById('fNome').value.trim(); if(!nome){Utils.showToast('Informe o nome','error');return;}
@@ -172,5 +264,5 @@ const Servicos = (() => {
 
   function deleteServico(id) { if(confirm('Remover este serviço?')){ DB.update('servicos',id,{ativo:false}); render(); Utils.showToast('Serviço removido','info'); } }
 
-  return { render, setTab, openNewServico, openEditServico, openNewFunc, openEditFunc, closeServModal, closeFuncModal, saveServico, saveFunc, deleteServico };
+  return { render, setTab, openNewServico, openEditServico, openNewFunc, openEditFunc, closeServModal, closeFuncModal, saveServico, saveFunc, deleteServico, addMaterial, removeMaterial };
 })();

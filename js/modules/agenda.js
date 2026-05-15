@@ -275,13 +275,26 @@ const Agenda = (() => {
     if(!data.clienteId||!data.servicoId||!data.data||!data.hora){ Utils.showToast('Preencha os campos obrigatórios','error'); return; }
     if(editId) DB.update('agendamentos',editId,data);
     else DB.create('agendamentos',data);
-    // Auto-lançamento financeiro se Concluído
-    if(data.status==='Concluído'&&data.valorPago>0&&!editId){
+    // Auto-lançamento financeiro + desconto estoque se Concluído
+    if(data.status==='Concluído'&&!editId){
       const sv=DB.get('servicos',data.servicoId);
       const cl=DB.get('clientes',data.clienteId);
-      DB.create('lancamentos',{tipo:'receita',descricao:`${sv?.nome||'Serviço'} - ${cl?.nome||'Cliente'}`,valor:data.valorPago,data:data.data,categoria:'Serviços',formaPagamento:data.formaPagamento||'',clienteId:data.clienteId,conciliado:true,observacoes:''});
-      // Update totais cliente
-      if(cl){ DB.update('clientes',cl.id,{totalGasto:(cl.totalGasto||0)+data.valorPago,totalVisitas:(cl.totalVisitas||0)+1}); }
+      // Receita financeira
+      if(data.valorPago>0){
+        DB.create('lancamentos',{tipo:'receita',descricao:`${sv?.nome||'Serviço'} - ${cl?.nome||'Cliente'}`,valor:data.valorPago,data:data.data,categoria:'Serviços',formaPagamento:data.formaPagamento||'',clienteId:data.clienteId,conciliado:true,observacoes:''});
+      }
+      // Totais do cliente
+      if(cl){ DB.update('clientes',cl.id,{totalGasto:(cl.totalGasto||0)+(data.valorPago||0),totalVisitas:(cl.totalVisitas||0)+1}); }
+      // Desconto automático de estoque
+      if(sv?.materiais?.length>0){
+        sv.materiais.forEach(m=>{
+          const prod=DB.get('produtos',m.produtoId);
+          if(!prod) return;
+          const novoEstoque=Math.max(0,(prod.estoqueAtual||0)-m.quantidade);
+          DB.update('produtos',m.produtoId,{estoqueAtual:novoEstoque});
+          DB.create('movEstoque',{produtoId:m.produtoId,tipo:'saída',quantidade:m.quantidade,estoqueAntes:prod.estoqueAtual||0,estoqueDepois:novoEstoque,motivo:`Atendimento — ${sv.nome}`,data:data.data});
+        });
+      }
     }
     closeModal();
     renderView();
