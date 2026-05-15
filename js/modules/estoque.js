@@ -120,11 +120,20 @@ const Estoque = (() => {
               </select>
             </div>
             <div class="form-group"><label>Tipo</label>
-              <select id="movTipo"><option value="entrada">Entrada (Compra/Recebimento)</option><option value="saida">Saída (Uso/Venda)</option><option value="ajuste">Ajuste de Inventário</option></select>
+              <select id="movTipo" onchange="Estoque.toggleValorCompra(this.value)">
+                <option value="entrada">Entrada (Compra/Recebimento)</option>
+                <option value="saida">Saída (Uso/Venda)</option>
+                <option value="ajuste">Ajuste de Inventário</option>
+              </select>
             </div>
             <div class="form-group"><label>Quantidade *</label><input type="number" id="movQtd" min="1" value="1"></div>
             <div class="form-group"><label>Data</label><input type="date" id="movData" value="${Utils.today()}"></div>
-            <div class="form-group"><label>Motivo / Observação</label><input type="text" id="movObs" placeholder="Ex: Compra fornecedor, consumo tratamento..."></div>
+            <div class="form-group" id="movValorGrupo">
+              <label>Valor Total da Compra (R$)</label>
+              <input type="number" id="movValor" step="0.01" min="0" value="0" placeholder="0,00">
+              <div style="font-size:11px;color:var(--primary);margin-top:4px">💡 Lança automaticamente como despesa no financeiro</div>
+            </div>
+            <div class="form-group"><label>Fornecedor / Observação</label><input type="text" id="movObs" placeholder="Ex: Fornecedor X, NF 1234..."></div>
           </div>
         </div>
         <div class="modal-footer">
@@ -133,6 +142,11 @@ const Estoque = (() => {
         </div>
       </div>
     </div>`;
+  }
+
+  function toggleValorCompra(tipo) {
+    const el = document.getElementById('movValorGrupo');
+    if(el) el.style.display = tipo === 'entrada' ? '' : 'none';
   }
 
   function openNew() {
@@ -169,6 +183,8 @@ const Estoque = (() => {
     document.getElementById('movQtd').value=1;
     document.getElementById('movData').value=Utils.today();
     document.getElementById('movObs').value='';
+    document.getElementById('movValor').value=0;
+    toggleValorCompra('entrada');
     document.getElementById('modalMovEstoque').classList.remove('hidden');
   }
 
@@ -190,12 +206,21 @@ const Estoque = (() => {
     if(!prodId||!qtd){ Utils.showToast('Preencha produto e quantidade','error'); return; }
     const tipo=document.getElementById('movTipo').value;
     const prod=DB.get('produtos',prodId);
+    const data=document.getElementById('movData').value;
+    const obs=document.getElementById('movObs').value;
     let novoEst=prod.estoqueAtual;
     if(tipo==='entrada') novoEst+=qtd;
     else if(tipo==='saida') novoEst=Math.max(0,novoEst-qtd);
     else novoEst=qtd;
     DB.update('produtos',prodId,{estoqueAtual:novoEst});
-    DB.create('movEstoque',{produtoId:prodId,tipo,quantidade:qtd,estoqueAntes:prod.estoqueAtual,estoqueDepois:novoEst,data:document.getElementById('movData').value,observacoes:document.getElementById('movObs').value});
+    DB.create('movEstoque',{produtoId:prodId,tipo,quantidade:qtd,estoqueAntes:prod.estoqueAtual,estoqueDepois:novoEst,data,observacoes:obs});
+    // Lança despesa automaticamente em entradas com valor
+    if(tipo==='entrada'){
+      const valor=Number(document.getElementById('movValor').value)||0;
+      if(valor>0){
+        DB.create('lancamentos',{tipo:'despesa',categoria:'Produtos',descricao:`Compra: ${prod.nome}${obs?` — ${obs}`:''}`,valor,data,formaPagamento:'',observacoes:obs});
+      }
+    }
     closeMovModal(); render(); Utils.showToast('Movimentação registrada!');
   }
 
@@ -205,5 +230,5 @@ const Estoque = (() => {
 
   function search(v) { searchTerm=v; render(); }
 
-  return { render, openNew, openEdit, openMovimentacao, closeModal, closeMovModal, save, saveMovimentacao, confirmDelete, search };
+  return { render, openNew, openEdit, openMovimentacao, closeModal, closeMovModal, save, saveMovimentacao, confirmDelete, search, toggleValorCompra };
 })();
